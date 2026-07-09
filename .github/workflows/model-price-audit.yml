@@ -167,6 +167,18 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Check Langfuse telemetry secrets
+        if: steps.validate-inputs.outputs.dry_run_mode == 'disabled'
+        env:
+          LANGFUSE_OTEL_TRACES_ENDPOINT: ${{ secrets.LANGFUSE_OTEL_TRACES_ENDPOINT }}
+          LANGFUSE_OTEL_BASIC_AUTH: ${{ secrets.LANGFUSE_OTEL_BASIC_AUTH }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${LANGFUSE_OTEL_TRACES_ENDPOINT:-}" ] || [ -z "${LANGFUSE_OTEL_BASIC_AUTH:-}" ]; then
+            echo "::warning::Langfuse tracing is disabled because the LANGFUSE_OTEL_TRACES_ENDPOINT and/or LANGFUSE_OTEL_BASIC_AUTH secrets are not set."
+          fi
+
       - name: Run Claude price audit
         id: claude-audit
         if: steps.validate-inputs.outputs.dry_run_mode == 'disabled'
